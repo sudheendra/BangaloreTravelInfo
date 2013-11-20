@@ -124,11 +124,12 @@ public class MainActivity extends ActionBarActivity {
                 }
                 else
                 {
+                    Toast.makeText(getApplicationContext(), "Unable to calculate distance", Toast.LENGTH_LONG).show();
+                    return;
                 }
             }
             catch (UnsupportedEncodingException ex)
             {
-
             }
         }
     };
@@ -180,7 +181,7 @@ public class MainActivity extends ActionBarActivity {
             results = json.getJSONArray(TAG_RESULTS);
 
             Toast.makeText(getApplication(),
-                    "TO Number of results : " + results.length(),
+                    "Number of results : " + results.length(),
                     Toast.LENGTH_LONG).show();
             if (results.length() > 0)
             {
