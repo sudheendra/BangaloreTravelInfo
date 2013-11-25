@@ -6,10 +6,15 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -45,14 +50,15 @@ import java.lang.Integer;
 import java.lang.Long;
 import java.lang.String;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
 public class MainActivity extends ActionBarActivity {
 
-    private EditText toText;
-    private EditText fromText;
+    private AutoCompleteTextView toText;
+    private AutoCompleteTextView fromText;
     private Button getdetailsBtn;
     private HttpClient client;
     private HttpPost post;
@@ -75,43 +81,54 @@ public class MainActivity extends ActionBarActivity {
     private Vector<String> JourneyTime;
     private Vector<String> Fare;
     private Vector<String> ServiceType;
+    private ArrayAdapter<String> StopNamesAdapter;
+    private ArrayList<String> StopNames;
+
+    private static final String[] COUNTRIES = new String[] {
+            "Belgium", "France", "Italy", "Germany", "Spain"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toText = (EditText) findViewById(R.id.to_text);
-        fromText = (EditText) findViewById(R.id.from_text);
+        toText = (AutoCompleteTextView) findViewById(R.id.to_text);
+        fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
 
         BusNumbers = new Vector<String>();
         Distance = new Vector<String>();
         JourneyTime = new Vector<String>();
         Fare = new Vector<String>();
         ServiceType = new Vector<String>();
+        StopNames = new ArrayList<String>();
+        StopNamesAdapter= new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, COUNTRIES);
+        toText.setAdapter(StopNamesAdapter);
+        fromText.setAdapter(StopNamesAdapter);
 
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
-        post = new HttpPost("http://www.mybmtc.com");
         get = new HttpGet("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0");
 
         getdetailsBtn = (Button) findViewById(R.id.search_details);
         getdetailsBtn.setOnClickListener(OnDetailsClicked);
+
+        toText.addTextChangedListener(OnTextChanged);
+        fromText.addTextChangedListener(OnTextChanged);
+
+        toText.setOnItemSelectedListener(OnToItemSelected);
+        StopNamesAdapter.notifyDataSetChanged();
+        fromText.setOnItemSelectedListener(OnFromItemSelected);
+
+        toText.setOnFocusChangeListener(OnFocusChanged);
     }
 
     private View.OnClickListener OnDetailsClicked = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            String postString = CreatePostString();
             try
             {
-                //URLEncoder.encode(postString, "UTF-8");
-                Log.i("Bang Travel", "post str: " + postString);
-                StringEntity stringEntity = new StringEntity(postString);
-
-                //get = new HttpGet(postString);
                 String url = "http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0";
-                //new GetDetails().execute(url);
                 new JsoupParseHtml().execute(url);
 
                 String toaddress = toText.getText().toString() + ", Bangalore";
@@ -128,9 +145,67 @@ public class MainActivity extends ActionBarActivity {
                     return;
                 }
             }
-            catch (UnsupportedEncodingException ex)
+            catch (Exception ex)
             {
+                ex.printStackTrace();
             }
+        }
+    };
+
+    private TextWatcher OnTextChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if (editable.length() == 3)
+            {
+                new GetStops().execute(editable.toString());
+                Log.i("Bang Travel", "Stopnames Len: " + StopNames.size());
+            }
+            else if (editable.length() < 3)
+            {
+                if (StopNames.size() > 0)
+                    StopNames.clear();
+            }
+        }
+    };
+
+    private AdapterView.OnItemSelectedListener OnToItemSelected = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            toText.setText(adapterView.getItemAtPosition(i).toString());
+            StopNames.clear();
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+        }
+    };
+
+    private AdapterView.OnItemSelectedListener OnFromItemSelected = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            fromText.setText(adapterView.getItemAtPosition(i).toString());
+            StopNames.clear();
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+        }
+    };
+
+    private View.OnFocusChangeListener OnFocusChanged = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View view, boolean b) {
+            StopNames.clear();
         }
     };
 
@@ -216,6 +291,125 @@ public class MainActivity extends ActionBarActivity {
         return 20 * distance;
     }
 
+    private class JsoupParseHtml extends AsyncTask<String, Integer, Integer> {
+
+        Document doc;
+        protected Integer doInBackground(String... urls)
+        {
+            try {
+                doc = Jsoup.connect("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0").get();
+                String title = doc.title();
+                System.out.println("title : " + title);
+
+                // get all links
+                /*Elements links = doc.select("a[href]");
+                for (Element link : links) {
+
+                    // get the value from href attribute
+                    System.out.println("\nlink : " + link.attr("href"));
+                    System.out.println("text : " + link.text());
+                }*/
+
+                Elements routeDetails = doc.select("td");
+                String NumberOfRoutesStr = routeDetails.get(0).text();
+                Integer NumberOfRoutesInt = Integer.parseInt(NumberOfRoutesStr.split(" ")[0]);
+                Log.i("Bang Travel", "No of routes: " + NumberOfRoutesInt);
+
+                for (int i = 2; i < routeDetails.size() - 2; i = i + 4) {
+                    String totalDetails = routeDetails.get(i).text();
+                    if (totalDetails.startsWith("Route"))
+                    {
+                        Log.i("Bang Travel", totalDetails);
+                        String routeNum = routeDetails.get(i).text();
+                        String[] busdetails = routeNum.split(":");
+                        if (busdetails.length > 1)
+                        {
+                            BusNumbers.add(busdetails[1].split(" ")[1]);
+                            Distance.add(busdetails[2].split(" ")[1]);
+                            JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
+                            Fare.add(busdetails[4].split(" ")[1]);
+                            ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
+
+                            /*for (int k = 0; k < busdetails.length; k++) {
+                                Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
+                            }*/
+                        }
+                    }
+                }
+
+                Log.i("Bang Travel", "Vector Size: " + BusNumbers.size() + " " + Distance.size() + " " + JourneyTime.size() + " " + Fare.size() + " " + ServiceType.size());
+            }
+            catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            return new Integer(1);
+        }
+
+        protected void onProgressUpdate(Integer... progress)
+        {
+
+        }
+
+        protected void onPostExecute(Integer result) {
+
+        }
+    }
+
+    private class GetStops extends AsyncTask<String, Integer, Integer> {
+
+        protected Integer doInBackground(String... urls) {
+
+            JSONParser jParser = new JSONParser();
+            // getting JSON string from URL
+            String url = "http://mybmtc.com" + "/busstopname/autocomplete/" + urls[0];
+            Log.i("Bang Travel", "URL: " + url);
+            String json = jParser.getStringFromUrl(url);
+            try {
+
+                if (json.length() != 0) {
+                    // Start parsing json string.
+                    String [] stops = json.split(",");
+                    for (int i = 0; i < stops.length; i++) {
+                        String stopName = stops[i].split(":")[1].replaceAll("[\"\\}\\]]", "").trim();
+                        StopNames.add(stopName);
+                        Log.i("bang Travel", "Stop Name: " + stopName);
+                    }
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Log.i("Bang Travel", ex.getMessage());
+            }
+            return 0;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+
+        }
+
+        protected void onPostExecute(Integer result) {
+
+        }
+    }
+
+    private String CreatePostString()
+    {
+        try {
+            String ToValueModified = URLEncoder.encode(toText.getText().toString(),"UTF-8");
+            String FromValueModified = URLEncoder.encode(fromText.getText().toString(), "UTF-8");
+
+            String urlString = serverName + FromValueModified + "/" + ToValueModified + "/" + "/0/0/0/0/D/0/0";
+            return urlString;
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            return null;
+        }
+        // String postInfo = "origin=" + FromValueModified + "&destination=" + ToValueModified + "+" +
+        //     "&origin-hidden-id=0&destination-hidden-id=0&from_time=0&to_time=0&form_id=bmtc_public_home_trip_planner_form";
+
+    }
+
     private class GetDetails extends AsyncTask<String, Integer, Long> {
         InputStream is = null;
         protected Long doInBackground(String... urls) {
@@ -262,88 +456,6 @@ public class MainActivity extends ActionBarActivity {
                 Log.i("Bang Travel", ex.getMessage());
             }
         }
-    }
-
-    private class JsoupParseHtml extends AsyncTask<String, Integer, Integer> {
-
-        Document doc;
-        protected Integer doInBackground(String... urls)
-        {
-            try {
-                doc = Jsoup.connect("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0").get();
-                String title = doc.title();
-                System.out.println("title : " + title);
-
-                // get all links
-                /*Elements links = doc.select("a[href]");
-                for (Element link : links) {
-
-                    // get the value from href attribute
-                    System.out.println("\nlink : " + link.attr("href"));
-                    System.out.println("text : " + link.text());
-                }*/
-
-                Elements routeDetails = doc.select("td");
-                String NumberOfRoutesStr = routeDetails.get(0).text();
-                Integer NumberOfRoutesInt = Integer.parseInt(NumberOfRoutesStr.split(" ")[0]);
-                Log.i("Bang Travel", "No of routes: " + NumberOfRoutesInt);
-
-                for (int i = 2; i < routeDetails.size() - 2; i= i + 4) {
-                    String totalDetails = routeDetails.get(i).text();
-                    if (totalDetails.startsWith("Route"))
-                    {
-                        Log.i("Bang Travel", totalDetails);
-                        String routeNum = routeDetails.get(i).text();
-                        String[] busdetails = routeNum.split(":");
-                        if (busdetails.length > 1)
-                        {
-                            BusNumbers.add(busdetails[1].split(" ")[1]);
-                            Distance.add(busdetails[2].split(" ")[1]);
-                            JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
-                            Fare.add(busdetails[4].split(" ")[1]);
-                            ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
-
-                            /*for (int k = 0; k < busdetails.length; k++) {
-                                Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
-                            }*/
-                        }
-                    }
-                }
-
-                Log.i("Bang Travel", "Vector Size: " + BusNumbers.size() + " " + Distance.size() + " " + JourneyTime.size() + " " + Fare.size() + " " + ServiceType.size());
-            }
-            catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            return new Integer(1);
-        }
-
-        protected void onProgressUpdate(Integer... progress)
-        {
-
-        }
-
-        protected void onPostExecute(Integer result) {
-
-        }
-    }
-
-    private String CreatePostString()
-    {
-        try {
-            String ToValueModified = URLEncoder.encode(toText.getText().toString(),"UTF-8");
-            String FromValueModified = URLEncoder.encode(fromText.getText().toString(), "UTF-8");
-
-            String urlString = serverName + FromValueModified + "/" + ToValueModified + "/" + "/0/0/0/0/D/0/0";
-            return urlString;
-        }
-        catch (UnsupportedEncodingException ex)
-        {
-            return null;
-        }
-        // String postInfo = "origin=" + FromValueModified + "&destination=" + ToValueModified + "+" +
-        //     "&origin-hidden-id=0&destination-hidden-id=0&from_time=0&to_time=0&form_id=bmtc_public_home_trip_planner_form";
-
     }
 
     @Override

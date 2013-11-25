@@ -60,10 +60,12 @@ public class JSONParser {
             StringBuilder sb = new StringBuilder();
             String line = null;
             while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
+                if (!HasSpecialCharacters(line))
+                    sb.append(line + "\n");
             }
             is.close();
             json = sb.toString();
+
         } catch (Exception e) {
             Log.e("Buffer Error", "Error converting result " + e.toString());
         }
@@ -77,7 +79,57 @@ public class JSONParser {
 
         // return JSON String
         return jObj;
+    }
 
+
+    public String getStringFromUrl(String url) {
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        // Making HTTP request
+        try {
+            // defaultHttpClient
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(url);
+
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            is = httpEntity.getContent();
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    is, "iso-8859-1"), 8);
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                if (!HasSpecialCharacters(line))
+                    sb.append(line + "\n");
+            }
+            is.close();
+            json = sb.toString();
+        } catch (Exception e) {
+            Log.e("Buffer Error", "Error converting result " + e.toString());
+        }
+        return json;
+    }
+
+    private boolean HasSpecialCharacters(String s)
+    {
+        if (s.matches(".*?['\\-—¿].*"))
+        {
+            Log.i("Bang Travel", "Has Special Characters");
+            return true;
+        }
+        return  false;
     }
 }
 
