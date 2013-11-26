@@ -8,7 +8,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".MainActivity$PlaceholderFragment"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="#888080">
 
     <TextView
         android:text="FROM:"

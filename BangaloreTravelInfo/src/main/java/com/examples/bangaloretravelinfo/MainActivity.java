@@ -82,29 +82,38 @@ public class MainActivity extends ActionBarActivity {
     private Vector<String> Fare;
     private Vector<String> ServiceType;
     private ArrayAdapter<String> StopNamesAdapter;
-    private ArrayList<String> StopNames;
 
-    private static final String[] COUNTRIES = new String[] {
-            "Belgium", "France", "Italy", "Germany", "Spain"
-    };
+
+    String[] androidBooks =
+            {
+                    "Hello, Android - Ed Burnette",
+                    "Professional Android 2 App Dev - Reto Meier",
+                    "Unlocking Android - Frank Ableson",
+                    "Android App Development - Blake Meike",
+                    "Pro Android 2 - Dave MacLean",
+                    "Beginning Android 2 - Mark Murphy",
+                    "Android Programming Tutorials - Mark Murphy",
+                    "Android Wireless App Development - Lauren Darcey",
+                    "Pro Android Games - Vladimir Silva",
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toText = (AutoCompleteTextView) findViewById(R.id.to_text);
-        fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
-
         BusNumbers = new Vector<String>();
         Distance = new Vector<String>();
         JourneyTime = new Vector<String>();
         Fare = new Vector<String>();
         ServiceType = new Vector<String>();
-        StopNames = new ArrayList<String>();
-        StopNamesAdapter= new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, COUNTRIES);
-        toText.setAdapter(StopNamesAdapter);
-        fromText.setAdapter(StopNamesAdapter);
+
+        toText = (AutoCompleteTextView) findViewById(R.id.to_text);
+        fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
+        toText.setThreshold(3);
+        fromText.setThreshold(3);
+        toText.setAdapter(new AutoCompleteAdapter(getApplicationContext()));
+        fromText.setAdapter(new AutoCompleteAdapter(getApplicationContext()));
 
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
@@ -113,14 +122,11 @@ public class MainActivity extends ActionBarActivity {
         getdetailsBtn = (Button) findViewById(R.id.search_details);
         getdetailsBtn.setOnClickListener(OnDetailsClicked);
 
-        toText.addTextChangedListener(OnTextChanged);
-        fromText.addTextChangedListener(OnTextChanged);
-
         toText.setOnItemSelectedListener(OnToItemSelected);
-        StopNamesAdapter.notifyDataSetChanged();
         fromText.setOnItemSelectedListener(OnFromItemSelected);
 
         toText.setOnFocusChangeListener(OnFocusChanged);
+        fromText.setOnFocusChangeListener(OnFocusChanged);
     }
 
     private View.OnClickListener OnDetailsClicked = new View.OnClickListener() {
@@ -152,37 +158,11 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
-    private TextWatcher OnTextChanged = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) {
-            if (editable.length() == 3)
-            {
-                new GetStops().execute(editable.toString());
-                Log.i("Bang Travel", "Stopnames Len: " + StopNames.size());
-            }
-            else if (editable.length() < 3)
-            {
-                if (StopNames.size() > 0)
-                    StopNames.clear();
-            }
-        }
-    };
-
     private AdapterView.OnItemSelectedListener OnToItemSelected = new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             toText.setText(adapterView.getItemAtPosition(i).toString());
-            StopNames.clear();
+            // StopNames.clear();
         }
 
         @Override
@@ -194,7 +174,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             fromText.setText(adapterView.getItemAtPosition(i).toString());
-            StopNames.clear();
+            // StopNames.clear();
         }
 
         @Override
@@ -205,7 +185,7 @@ public class MainActivity extends ActionBarActivity {
     private View.OnFocusChangeListener OnFocusChanged = new View.OnFocusChangeListener() {
         @Override
         public void onFocusChange(View view, boolean b) {
-            StopNames.clear();
+            // StopNames.clear();
         }
     };
 
@@ -355,42 +335,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private class GetStops extends AsyncTask<String, Integer, Integer> {
-
-        protected Integer doInBackground(String... urls) {
-
-            JSONParser jParser = new JSONParser();
-            // getting JSON string from URL
-            String url = "http://mybmtc.com" + "/busstopname/autocomplete/" + urls[0];
-            Log.i("Bang Travel", "URL: " + url);
-            String json = jParser.getStringFromUrl(url);
-            try {
-
-                if (json.length() != 0) {
-                    // Start parsing json string.
-                    String [] stops = json.split(",");
-                    for (int i = 0; i < stops.length; i++) {
-                        String stopName = stops[i].split(":")[1].replaceAll("[\"\\}\\]]", "").trim();
-                        StopNames.add(stopName);
-                        Log.i("bang Travel", "Stop Name: " + stopName);
-                    }
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Log.i("Bang Travel", ex.getMessage());
-            }
-            return 0;
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-
-        }
-
-        protected void onPostExecute(Integer result) {
-
-        }
-    }
 
     private String CreatePostString()
     {
