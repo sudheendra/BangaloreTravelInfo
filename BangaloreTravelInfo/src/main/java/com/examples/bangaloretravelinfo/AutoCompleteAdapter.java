@@ -1,6 +1,7 @@
 package com.examples.bangaloretravelinfo;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
@@ -23,13 +24,11 @@ import java.util.List;
 public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filterable{
     private LayoutInflater mInflater;
     private StringBuilder mSb = new StringBuilder();
-    public static ArrayList<String> StopList;
     ArrayList<String> Stops;
 
-    public AutoCompleteAdapter(final Context context) {
-        super(context, -1);
+    public AutoCompleteAdapter(final Context context, int TextViewResourceId) {
+        super(context, TextViewResourceId);
         mInflater = LayoutInflater.from(context);
-        StopList = new ArrayList<String>();
     }
 
     @Override
@@ -37,12 +36,25 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
         final TextView tv;
         if (convertView != null) {
             tv = (TextView) convertView;
+            tv.setBackgroundColor(Color.BLACK);
+            tv.setTextColor(Color.WHITE);
         } else {
+            Log.i("BangTravel", "Else Block");
             tv = (TextView) mInflater.inflate(android.R.layout.simple_dropdown_item_1line, parent, false);
+            tv.setBackgroundColor(Color.BLACK);
+            tv.setTextColor(Color.WHITE);
         }
 
         tv.setText((getItem(position)));
         return tv;
+    }
+
+    public int getCount() {
+        return Stops.size();
+    }
+
+    public String getItem(int index) {
+        return Stops.get(index);
     }
 
     @Override
@@ -96,6 +108,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
 
     private ArrayList<String> GetStopNames(String s)
     {
+        ArrayList<String> stoplist = new ArrayList<String>();
         JSONParser jParser = new JSONParser();
         // getting JSON string from URL
         String url = "http://mybmtc.com" + "/busstopname/autocomplete/" + s;
@@ -108,7 +121,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
                 String [] stops = json.split(",");
                 for (int i = 0; i < stops.length; i++) {
                     String stopName = stops[i].split(":")[1].replaceAll("[\"\\}\\]]", "").trim();
-                    StopList.add(stopName);
+                    stoplist.add(stopName);
                     Log.i("bang Travel", "Stop Name: " + stopName);
                 }
             }
@@ -118,10 +131,10 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
             Log.i("Bang Travel", ex.getMessage());
         }
 
-        return StopList;
+        return stoplist;
     }
 
-    private class GetStops extends AsyncTask<String, Integer, Integer> {
+    /*private class GetStops extends AsyncTask<String, Integer, Integer> {
 
         protected Integer doInBackground(String... urls) {
 
@@ -156,7 +169,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
         protected void onPostExecute(Integer result) {
 
         }
-    }
+    }*/
 
 }
 

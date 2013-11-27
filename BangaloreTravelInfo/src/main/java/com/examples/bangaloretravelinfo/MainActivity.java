@@ -112,8 +112,8 @@ public class MainActivity extends ActionBarActivity {
         fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
         toText.setThreshold(3);
         fromText.setThreshold(3);
-        toText.setAdapter(new AutoCompleteAdapter(getApplicationContext()));
-        fromText.setAdapter(new AutoCompleteAdapter(getApplicationContext()));
+        toText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
+        fromText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
 
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
@@ -134,11 +134,14 @@ public class MainActivity extends ActionBarActivity {
         public void onClick(View view) {
             try
             {
-                String url = "http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0";
-                new JsoupParseHtml().execute(url);
+                String to = toText.getText().toString();
+                String from = fromText.getText().toString();
 
-                String toaddress = toText.getText().toString() + ", Bangalore";
-                String fromaddress = fromText.getText().toString() + ", Bangalore";
+                String toaddress = to + ", Bangalore";
+                String fromaddress = from + ", Bangalore";
+
+                String url = "http://mybmtc.com/trip-planner/" + EncodeUrl(from.trim()) + "%280%29/" + EncodeUrl(to.trim()) + "%280%29/0/0/0/0/D/0/0";
+                new JsoupParseHtml().execute(url);
 
                 Float distance = GetDistanceFromUrl(toaddress, fromaddress);
                 if (distance > 0)
@@ -162,7 +165,6 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             toText.setText(adapterView.getItemAtPosition(i).toString());
-            // StopNames.clear();
         }
 
         @Override
@@ -174,7 +176,6 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             fromText.setText(adapterView.getItemAtPosition(i).toString());
-            // StopNames.clear();
         }
 
         @Override
@@ -276,8 +277,13 @@ public class MainActivity extends ActionBarActivity {
         Document doc;
         protected Integer doInBackground(String... urls)
         {
+            BusNumbers.clear();
+            Distance.clear();
+            JourneyTime.clear();
+            Fare.clear();
+            ServiceType.clear();
             try {
-                doc = Jsoup.connect("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0").get();
+                doc = Jsoup.connect(urls[0]).get();
                 String title = doc.title();
                 System.out.println("title : " + title);
 
@@ -400,6 +406,17 @@ public class MainActivity extends ActionBarActivity {
                 Log.i("Bang Travel", ex.getMessage());
             }
         }
+    }
+
+    private String EncodeUrl(String s) {
+        String url = "";
+        try {
+            url = URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
+        }
+        catch (UnsupportedEncodingException ex) {
+
+        }
+        return url;
     }
 
     @Override
