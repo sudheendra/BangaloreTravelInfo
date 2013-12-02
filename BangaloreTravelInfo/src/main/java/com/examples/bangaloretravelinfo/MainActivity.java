@@ -17,6 +17,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.examples.bangaloretravelguide.R;
@@ -65,6 +67,10 @@ public class MainActivity extends ActionBarActivity {
     private HttpGet get;
     private HttpResponse response;
     private static String serverName = "http://mybmtc.com/trip-planner/";
+
+    private TextView distText;
+    private TextView autoFare;
+    private LinearLayout busDetails;
 
     private static final String TAG_RESULTS = "results";
     private static final String TAG_GEOMETRY = "geometry";
@@ -115,6 +121,9 @@ public class MainActivity extends ActionBarActivity {
         toText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
         fromText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
 
+        distText = (TextView) findViewById(R.id.distance_info);
+        autoFare = (TextView) findViewById(R.id.auto_fare);
+
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
         get = new HttpGet("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0");
@@ -144,9 +153,12 @@ public class MainActivity extends ActionBarActivity {
                 new JsoupParseHtml().execute(url);
 
                 Float distance = GetDistanceFromUrl(toaddress, fromaddress);
+                setContentView(R.layout.details);
                 if (distance > 0)
                 {
+                    distText.setText(distance.toString());
                     AutoFare = GetAutoFare(distance);
+                    autoFare.setText(new Double(AutoFare).toString());
                 }
                 else
                 {
@@ -310,15 +322,26 @@ public class MainActivity extends ActionBarActivity {
                         String[] busdetails = routeNum.split(":");
                         if (busdetails.length > 1)
                         {
+                            for (int k = 0; k < busdetails.length; k++) {
+                                Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
+                            }
+
+                            if (busdetails.length >= 6)
+                            {
                             BusNumbers.add(busdetails[1].split(" ")[1]);
                             Distance.add(busdetails[2].split(" ")[1]);
                             JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
                             Fare.add(busdetails[4].split(" ")[1]);
                             ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
-
-                            /*for (int k = 0; k < busdetails.length; k++) {
-                                Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
-                            }*/
+                            }
+                            else if (busdetails.length == 5)
+                            {
+                                BusNumbers.add(busdetails[1].split(" ")[1]);
+                                Distance.add(busdetails[2].split(" ")[1]);
+                                JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
+                                Fare.add("100");
+                                ServiceType.add(busdetails[4].split(" ")[0] + " " + busdetails[4].split(" ")[1]);
+                            }
                         }
                     }
                 }
@@ -339,25 +362,6 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Integer result) {
 
         }
-    }
-
-
-    private String CreatePostString()
-    {
-        try {
-            String ToValueModified = URLEncoder.encode(toText.getText().toString(),"UTF-8");
-            String FromValueModified = URLEncoder.encode(fromText.getText().toString(), "UTF-8");
-
-            String urlString = serverName + FromValueModified + "/" + ToValueModified + "/" + "/0/0/0/0/D/0/0";
-            return urlString;
-        }
-        catch (UnsupportedEncodingException ex)
-        {
-            return null;
-        }
-        // String postInfo = "origin=" + FromValueModified + "&destination=" + ToValueModified + "+" +
-        //     "&origin-hidden-id=0&destination-hidden-id=0&from_time=0&to_time=0&form_id=bmtc_public_home_trip_planner_form";
-
     }
 
     private class GetDetails extends AsyncTask<String, Integer, Long> {

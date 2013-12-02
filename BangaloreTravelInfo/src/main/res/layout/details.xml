@@ -3,23 +3,53 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#808080">
+    android:background="#1862d8">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/linear_lyt_background">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_weight="0.3"
+            android:layout_height="match_parent"
+            android:id="@+id/from_detail_text"
+            android:text="Central Silk Board"
+            android:textSize="25dp"/>
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:src="@drawable/navigation_forward"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/to_detail_text"
+            android:text="Marathahalli"
+            android:textSize="25dp"/>
+        </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:paddingLeft="5dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@drawable/linear_lyt_background">
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_dialog_info"/>
+            android:src="@drawable/ic_menu_car"/>
         <TextView
             android:paddingLeft="10dp"
+            android:paddingTop="5dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="30dp"
             android:text="Distance:"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,8 +60,59 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingTop="5dp"
             android:id="@+id/map_view_button"
-            android:src="@android:drawable/ic_menu_mapmode"/>
+            android:src="@drawable/ic_action_map"/>
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingLeft="5dp"
+        android:orientation="horizontal"
+        android:background="@drawable/linear_lyt_background">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_dialog_info"/>
+        <TextView
+            android:paddingLeft="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30dp"
+            android:text="Auto Fare:"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:textSize="30dp"
+            android:layout_weight="1"
+            android:id="@+id/auto_fare"/>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/linear_lyt_background"
+        android:id="@+id/bmtc_details">
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_icon_bus_grey"/>
+        <TextView
+            android:paddingLeft="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30dp"
+            android:text="Bus Details"/>
+        </LinearLayout>
 
 </LinearLayout>

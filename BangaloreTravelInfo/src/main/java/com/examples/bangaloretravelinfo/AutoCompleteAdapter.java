@@ -51,6 +51,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
 
     public int getCount() {
         return Stops.size();
+
     }
 
     public String getItem(int index) {
