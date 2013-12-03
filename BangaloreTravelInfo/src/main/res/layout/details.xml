@@ -101,8 +101,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/linear_lyt_background"
-        android:id="@+id/bmtc_details">
+        android:background="@drawable/linear_lyt_background">
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -115,4 +114,12 @@
             android:text="Bus Details"/>
         </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/linear_lyt_background"
+        android:id="@+id/bmtc_details"
+        android:orientation="vertical">
+
+        </LinearLayout>
 </LinearLayout>

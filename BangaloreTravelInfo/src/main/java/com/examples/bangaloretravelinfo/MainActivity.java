@@ -124,27 +124,9 @@ public class MainActivity extends Activity {
                 new JsoupParseHtml().execute(url);
 
                 TotalDistance = GetDistanceFromUrl(toaddress, fromaddress);
+                Math.round(TotalDistance);
                 Log.i("Bang Travel", "Total distance: " + TotalDistance);
-                setContentView(R.layout.details);
-                if (TotalDistance > 0)
-                {
-                    AutoFare = GetAutoFare(TotalDistance);
-                    Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-                    intent.putExtra("TotalDistance", TotalDistance);
-                    intent.putExtra("AutoFare", AutoFare);
-                    intent.putStringArrayListExtra("BusNumbers", BusNumbers);
-                    intent.putStringArrayListExtra("Distance", Distance);
-                    intent.putStringArrayListExtra("JourneyTime", JourneyTime);
-                    intent.putStringArrayListExtra("Fare", Fare);
-                    intent.putStringArrayListExtra("ServiceType", ServiceType);
 
-                    startActivity(intent);
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), "Unable to calculate distance", Toast.LENGTH_LONG).show();
-                    return;
-                }
             }
             catch (Exception ex)
             {
@@ -198,7 +180,7 @@ public class MainActivity extends Activity {
             try {
             Location.distanceBetween(from_lat_long[0], from_lat_long[1], to_lat_long[0], to_lat_long[1], distanceResults);
             if (distanceResults.length > 0)
-                return distanceResults[0]/1000;
+                return (distanceResults[0]/1000);
             }
             catch (NullPointerException ex) {
                 Toast.makeText(getApplicationContext(), "Unable to get the Co-Ordiantes of Location, Please Retry", Toast.LENGTH_LONG).show();
@@ -340,7 +322,32 @@ public class MainActivity extends Activity {
         }
 
         protected void onPostExecute(Integer result) {
+            Log.i("Bang Travel", "Post Execute");
+            LoadDetailsActivity();
+        }
+    }
 
+
+    private void LoadDetailsActivity()
+    {
+        if (TotalDistance > 0)
+        {
+            AutoFare = GetAutoFare(TotalDistance);
+            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            intent.putExtra("TotalDistance", TotalDistance);
+            intent.putExtra("AutoFare", AutoFare);
+            intent.putStringArrayListExtra("BusNumbers", BusNumbers);
+            intent.putStringArrayListExtra("Distance", Distance);
+            intent.putStringArrayListExtra("JourneyTime", JourneyTime);
+            intent.putStringArrayListExtra("Fare", Fare);
+            intent.putStringArrayListExtra("ServiceType", ServiceType);
+
+            startActivity(intent);
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Unable to calculate distance", Toast.LENGTH_LONG).show();
+            return;
         }
     }
 

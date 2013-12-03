@@ -67,9 +67,9 @@ public class DetailsActivity extends Activity {
 
     private void AddBusDetails(String busnum, String distance, String journeyTime, String fare, String serviceType)
     {
-        LinearLayout ll = new LinearLayout(this);
-        ll.setBackgroundResource(R.drawable.linear_lyt_background);
-        ll.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams linLayoutParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout ll = (LinearLayout) (findViewById(R.id.bmtc_details));
 
         TextView BusNumber = new TextView(this);
         BusNumber.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
@@ -102,8 +102,8 @@ public class DetailsActivity extends Activity {
         ll.addView(Distance, 3);
         ll.addView(ServiceType, 4);
 
-        LinearLayout parent = (LinearLayout) (findViewById(R.layout.activity_details));
-        parent.addView(ll);
+        //LinearLayout parent = (LinearLayout) (findViewById(R.layout.activity_details));
+        //parent.addView(ll, linLayoutParam);
     }
 
     @Override
