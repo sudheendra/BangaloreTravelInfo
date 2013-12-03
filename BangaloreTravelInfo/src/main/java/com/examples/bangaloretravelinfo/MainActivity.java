@@ -1,17 +1,16 @@
 package com.examples.bangaloretravelinfo;
 
-import android.location.Address;
-import android.location.Geocoder;
+import android.app.Activity;
+import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -27,7 +26,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import org.json.JSONArray;
@@ -38,26 +36,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.Integer;
-import java.lang.Long;
 import java.lang.String;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Vector;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     private AutoCompleteTextView toText;
     private AutoCompleteTextView fromText;
@@ -67,10 +54,6 @@ public class MainActivity extends ActionBarActivity {
     private HttpGet get;
     private HttpResponse response;
     private static String serverName = "http://mybmtc.com/trip-planner/";
-
-    private TextView distText;
-    private TextView autoFare;
-    private LinearLayout busDetails;
 
     private static final String TAG_RESULTS = "results";
     private static final String TAG_GEOMETRY = "geometry";
@@ -82,37 +65,28 @@ public class MainActivity extends ActionBarActivity {
     JSONArray results = null;
 
     private double AutoFare;
-    private Vector<String> BusNumbers;
-    private Vector<String> Distance;
-    private Vector<String> JourneyTime;
-    private Vector<String> Fare;
-    private Vector<String> ServiceType;
+    private Float TotalDistance;
+    private ArrayList<String> BusNumbers;
+    private ArrayList<String> Distance;
+    private ArrayList<String> JourneyTime;
+    private ArrayList<String> Fare;
+    private ArrayList<String> ServiceType;
     private ArrayAdapter<String> StopNamesAdapter;
 
-
-    String[] androidBooks =
-            {
-                    "Hello, Android - Ed Burnette",
-                    "Professional Android 2 App Dev - Reto Meier",
-                    "Unlocking Android - Frank Ableson",
-                    "Android App Development - Blake Meike",
-                    "Pro Android 2 - Dave MacLean",
-                    "Beginning Android 2 - Mark Murphy",
-                    "Android Programming Tutorials - Mark Murphy",
-                    "Android Wireless App Development - Lauren Darcey",
-                    "Pro Android Games - Vladimir Silva",
-            };
+    DetailsActivity detailsActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BusNumbers = new Vector<String>();
-        Distance = new Vector<String>();
-        JourneyTime = new Vector<String>();
-        Fare = new Vector<String>();
-        ServiceType = new Vector<String>();
+        detailsActivity = new DetailsActivity();
+
+        BusNumbers = new ArrayList<String>();
+        Distance = new ArrayList<String>();
+        JourneyTime = new ArrayList<String>();
+        Fare = new ArrayList<String>();
+        ServiceType = new ArrayList<String>();
 
         toText = (AutoCompleteTextView) findViewById(R.id.to_text);
         fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
@@ -120,9 +94,6 @@ public class MainActivity extends ActionBarActivity {
         fromText.setThreshold(3);
         toText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
         fromText.setAdapter(new AutoCompleteAdapter(getApplicationContext(), R.id.list_item));
-
-        distText = (TextView) findViewById(R.id.distance_info);
-        autoFare = (TextView) findViewById(R.id.auto_fare);
 
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
@@ -152,13 +123,22 @@ public class MainActivity extends ActionBarActivity {
                 String url = "http://mybmtc.com/trip-planner/" + EncodeUrl(from.trim()) + "%280%29/" + EncodeUrl(to.trim()) + "%280%29/0/0/0/0/D/0/0";
                 new JsoupParseHtml().execute(url);
 
-                Float distance = GetDistanceFromUrl(toaddress, fromaddress);
+                TotalDistance = GetDistanceFromUrl(toaddress, fromaddress);
+                Log.i("Bang Travel", "Total distance: " + TotalDistance);
                 setContentView(R.layout.details);
-                if (distance > 0)
+                if (TotalDistance > 0)
                 {
-                    distText.setText(distance.toString());
-                    AutoFare = GetAutoFare(distance);
-                    autoFare.setText(new Double(AutoFare).toString());
+                    AutoFare = GetAutoFare(TotalDistance);
+                    Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+                    intent.putExtra("TotalDistance", TotalDistance);
+                    intent.putExtra("AutoFare", AutoFare);
+                    intent.putStringArrayListExtra("BusNumbers", BusNumbers);
+                    intent.putStringArrayListExtra("Distance", Distance);
+                    intent.putStringArrayListExtra("JourneyTime", JourneyTime);
+                    intent.putStringArrayListExtra("Fare", Fare);
+                    intent.putStringArrayListExtra("ServiceType", ServiceType);
+
+                    startActivity(intent);
                 }
                 else
                 {
@@ -218,7 +198,7 @@ public class MainActivity extends ActionBarActivity {
             try {
             Location.distanceBetween(from_lat_long[0], from_lat_long[1], to_lat_long[0], to_lat_long[1], distanceResults);
             if (distanceResults.length > 0)
-                return distanceResults[0]/100;
+                return distanceResults[0]/1000;
             }
             catch (NullPointerException ex) {
                 Toast.makeText(getApplicationContext(), "Unable to get the Co-Ordiantes of Location, Please Retry", Toast.LENGTH_LONG).show();
@@ -322,9 +302,9 @@ public class MainActivity extends ActionBarActivity {
                         String[] busdetails = routeNum.split(":");
                         if (busdetails.length > 1)
                         {
-                            for (int k = 0; k < busdetails.length; k++) {
+                            /*for (int k = 0; k < busdetails.length; k++) {
                                 Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
-                            }
+                            }*/
 
                             if (busdetails.length >= 6)
                             {
@@ -361,54 +341,6 @@ public class MainActivity extends ActionBarActivity {
 
         protected void onPostExecute(Integer result) {
 
-        }
-    }
-
-    private class GetDetails extends AsyncTask<String, Integer, Long> {
-        InputStream is = null;
-        protected Long doInBackground(String... urls) {
-            try
-            {
-                Log.i("Bang Travel", "*****Do in BackGround*****");
-                is  = client.execute(get).getEntity().getContent();
-            }
-
-            catch (UnsupportedEncodingException ex)
-            {
-
-            }
-
-            catch (IOException ex)
-            {
-
-            }
-            return new Long(1);
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-            //setProgressPercent(progress[0]);
-        }
-
-        protected void onPostExecute(Long result) {
-            //showDialog("Downloaded " + result + " bytes");
-            Log.i("Bang Travel", "*****On Post Execute*****");
-            try {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                int next = is.read();
-                while (next > -1) {
-                    bos.write(next);
-                    next = is.read();
-                }
-                bos.flush();
-                byte[] data = bos.toByteArray();
-                Log.i("Bang Travel", "BOS Size: " + bos.size());
-                Log.i("Bang Travel", "Data Len: " + data.length);
-                is.close();
-                bos.close();
-            }
-            catch (IOException ex) {
-                Log.i("Bang Travel", ex.getMessage());
-            }
         }
     }
 
