@@ -113,7 +113,6 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
         JSONParser jParser = new JSONParser();
         // getting JSON string from URL
         String url = "http://mybmtc.com" + "/busstopname/autocomplete/" + s;
-        Log.i("Bang Travel", "URL: " + url);
         String json = jParser.getStringFromUrl(url);
         try {
 
@@ -123,7 +122,6 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
                 for (int i = 0; i < stops.length; i++) {
                     String stopName = stops[i].split(":")[1].replaceAll("[\"\\}\\]]", "").trim();
                     stoplist.add(stopName);
-                    Log.i("bang Travel", "Stop Name: " + stopName);
                 }
             }
 

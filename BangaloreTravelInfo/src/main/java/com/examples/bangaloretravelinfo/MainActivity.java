@@ -6,26 +6,17 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.examples.bangaloretravelguide.R;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import org.json.JSONArray;
@@ -33,7 +24,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -42,7 +32,6 @@ import java.lang.Integer;
 import java.lang.String;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Vector;
 
 public class MainActivity extends Activity {
 
@@ -50,10 +39,6 @@ public class MainActivity extends Activity {
     private AutoCompleteTextView fromText;
     private Button getdetailsBtn;
     private HttpClient client;
-    private HttpPost post;
-    private HttpGet get;
-    private HttpResponse response;
-    private static String serverName = "http://mybmtc.com/trip-planner/";
 
     private static final String TAG_RESULTS = "results";
     private static final String TAG_GEOMETRY = "geometry";
@@ -71,7 +56,8 @@ public class MainActivity extends Activity {
     private ArrayList<String> JourneyTime;
     private ArrayList<String> Fare;
     private ArrayList<String> ServiceType;
-    private ArrayAdapter<String> StopNamesAdapter;
+    private String ToStop;
+    private String FromStop;
 
     DetailsActivity detailsActivity;
 
@@ -97,7 +83,6 @@ public class MainActivity extends Activity {
 
         client = new DefaultHttpClient();
         HttpProtocolParams.setUserAgent(client.getParams(), "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
-        get = new HttpGet("http://mybmtc.com/trip-planner/Central%20Silk%20Board%280%29/Marathahalli%20Bridge%280%29/0/0/0/0/D/0/0");
 
         getdetailsBtn = (Button) findViewById(R.id.search_details);
         getdetailsBtn.setOnClickListener(OnDetailsClicked);
@@ -114,16 +99,16 @@ public class MainActivity extends Activity {
         public void onClick(View view) {
             try
             {
-                String to = toText.getText().toString();
-                String from = fromText.getText().toString();
+                ToStop = toText.getText().toString();
+                FromStop = fromText.getText().toString();
 
-                String toaddress = to + ", Bangalore";
-                String fromaddress = from + ", Bangalore";
+                String toaddress = ToStop + ", Bangalore";
+                String fromaddress = FromStop + ", Bangalore";
 
-                String url = "http://mybmtc.com/trip-planner/" + EncodeUrl(from.trim()) + "%280%29/" + EncodeUrl(to.trim()) + "%280%29/0/0/0/0/D/0/0";
+                String url = "http://mybmtc.com/trip-planner/" + EncodeUrl(FromStop.trim()) + "%280%29/" + EncodeUrl(ToStop.trim()) + "%280%29/0/0/0/0/D/0/0";
                 new JsoupParseHtml().execute(url);
 
-                TotalDistance = GetDistanceFromUrl(toaddress, fromaddress);
+                TotalDistance =  truncate(GetDistanceFromUrl(toaddress, fromaddress), 2);
                 Math.round(TotalDistance);
                 Log.i("Bang Travel", "Total distance: " + TotalDistance);
 
@@ -210,9 +195,6 @@ public class MainActivity extends Activity {
             // Getting Array of results
             results = json.getJSONArray(TAG_RESULTS);
 
-            Toast.makeText(getApplication(),
-                    "Number of results : " + results.length(),
-                    Toast.LENGTH_LONG).show();
             if (results.length() > 0)
             {
                 for (int i = 0; i < results.length(); i++) {
@@ -279,7 +261,6 @@ public class MainActivity extends Activity {
                     String totalDetails = routeDetails.get(i).text();
                     if (totalDetails.startsWith("Route"))
                     {
-                        Log.i("Bang Travel", totalDetails);
                         String routeNum = routeDetails.get(i).text();
                         String[] busdetails = routeNum.split(":");
                         if (busdetails.length > 1)
@@ -290,11 +271,13 @@ public class MainActivity extends Activity {
 
                             if (busdetails.length >= 6)
                             {
-                            BusNumbers.add(busdetails[1].split(" ")[1]);
-                            Distance.add(busdetails[2].split(" ")[1]);
-                            JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
-                            Fare.add(busdetails[4].split(" ")[1]);
-                            ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
+                                BusNumbers.add(busdetails[1].split(" ")[1]);
+                                Distance.add(busdetails[2].split(" ")[1]);
+                                JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
+                                String fare = busdetails[4].split(" ")[1].split("[^0-9]")[0];
+                                Fare.add(fare);
+                                ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
+                                Log.i("Bang Travel", "Service Type: " + ServiceType);
                             }
                             else if (busdetails.length == 5)
                             {
@@ -303,6 +286,7 @@ public class MainActivity extends Activity {
                                 JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
                                 Fare.add("100");
                                 ServiceType.add(busdetails[4].split(" ")[0] + " " + busdetails[4].split(" ")[1]);
+                                Log.i("Bang Travel", "Service Type: " + ServiceType);
                             }
                         }
                     }
@@ -332,8 +316,10 @@ public class MainActivity extends Activity {
     {
         if (TotalDistance > 0)
         {
-            AutoFare = GetAutoFare(TotalDistance);
+            AutoFare = truncate(GetAutoFare(TotalDistance), 2);
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            intent.putExtra("ToStop", ToStop);
+            intent.putExtra("FromStop", FromStop);
             intent.putExtra("TotalDistance", TotalDistance);
             intent.putExtra("AutoFare", AutoFare);
             intent.putStringArrayListExtra("BusNumbers", BusNumbers);
@@ -380,5 +366,27 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public static double truncate(double value, int places) {
+        if (places < 0) {
+            throw new IllegalArgumentException();
+        }
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = (long) value;
+        return (double) tmp / factor;
+    }
+
+    public static float truncate(float value, int places) {
+        if (places < 0) {
+            throw new IllegalArgumentException();
+        }
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = (long) value;
+        return (float) tmp / factor;
     }
 }

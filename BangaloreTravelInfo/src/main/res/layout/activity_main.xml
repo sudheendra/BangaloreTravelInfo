@@ -8,16 +8,20 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".MainActivity$PlaceholderFragment"
     android:orientation="vertical"
-    android:background="#888080">
+    android:background="#FFFFFF">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/linear_lyt_background">
     <TextView
         android:text="FROM:"
         android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@android:color/background_dark"
-        android:textSize="20dp"
-        android:background="#808080"/>
+        android:textSize="20dp"/>
     <AutoCompleteTextView
         android:layout_marginTop="10dp"
         android:id="@+id/from_text"
@@ -27,15 +31,24 @@
         android:background="@drawable/txt_background"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
+    </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="5dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/linear_lyt_background">
     <TextView
         android:text="TO:"
         android:layout_marginTop="10dp"
         android:textColor="@android:color/background_dark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:background="#808080"/>
+        android:textSize="20dp"/>
     <AutoCompleteTextView
         android:id="@+id/to_text"
         android:textColor="@android:color/background_dark"
@@ -45,6 +58,8 @@
         android:background="@drawable/txt_background"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
+    </LinearLayout>
+
     <Button
         android:layout_width="50dp"
         android:layout_marginTop="10dp"

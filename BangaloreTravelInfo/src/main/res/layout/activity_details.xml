@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+<LinearLayout
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1862d8">
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,22 +14,20 @@
         android:background="@drawable/linear_lyt_background">
         <TextView
             android:layout_width="wrap_content"
-            android:layout_weight="0.3"
             android:layout_height="match_parent"
             android:id="@+id/from_detail_text"
-            android:text="Central Silk Board"
-            android:textSize="25dp"/>
+            android:layout_weight="0.3"
+            android:textSize="20dp"/>
         <ImageView
             android:layout_width="100dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.3"
             android:src="@drawable/navigation_forward"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/to_detail_text"
-            android:text="Marathahalli"
-            android:textSize="25dp"/>
+            android:layout_weight="0.3"
+            android:textSize="20dp"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -41,20 +42,20 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_car"/>
+            android:src="@drawable/ic_menu_car" />
         <TextView
             android:paddingLeft="10dp"
-            android:paddingTop="5dp"
+            android:paddingTop="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:text="Distance:"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:layout_weight="1"
             android:id="@+id/distance_info"/>
         <ImageButton
@@ -78,19 +79,19 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_dialog_info"/>
+            android:src="@drawable/ic_auto_icon"/>
         <TextView
             android:paddingLeft="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:text="Auto Fare:"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:layout_weight="1"
             android:id="@+id/auto_fare"/>
     </LinearLayout>
@@ -101,18 +102,34 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/linear_lyt_background"
-        android:id="@+id/bmtc_details">
+        android:orientation="vertical"
+        android:background="@drawable/linear_lyt_background">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_icon_bus_grey"/>
+            android:src="@drawable/ic_bus_icon_1"/>
         <TextView
             android:paddingLeft="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="30dp"
+            android:textSize="20dp"
             android:text="Bus Details"/>
+        </LinearLayout>
+        <View android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#000000" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/bmtc_details"
+            android:orientation="vertical">
+        </LinearLayout>
     </LinearLayout>
 
+
 </LinearLayout>
+</ScrollView>

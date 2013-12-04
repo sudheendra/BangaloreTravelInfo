@@ -25,6 +25,11 @@ public class DetailsActivity extends Activity {
 
     private TextView distText;
     private TextView autoFare;
+    private TextView fromText;
+    private TextView toText;
+
+    private String ToStop;
+    private String FromStop;
 
     private Float TotalDistance;
     private Double AutoFare;
@@ -39,6 +44,9 @@ public class DetailsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
+
+        ToStop = intent.getStringExtra("ToStop");
+        FromStop = intent.getStringExtra("FromStop");
         TotalDistance = intent.getFloatExtra("TotalDistance", 0);
         AutoFare = intent.getDoubleExtra("AutoFare", 0);
         BusNumbers = intent.getStringArrayListExtra("BusNumbers");
@@ -50,14 +58,18 @@ public class DetailsActivity extends Activity {
         setContentView(R.layout.activity_details);
         distText = (TextView) findViewById(R.id.distance_info);
         autoFare = (TextView) findViewById(R.id.auto_fare);
+        fromText = (TextView) findViewById(R.id.from_detail_text);
+        toText = (TextView) findViewById(R.id.to_detail_text);
 
         LoadDetails();
     }
 
     private void  LoadDetails()
     {
-        distText.setText(TotalDistance.toString());
-        autoFare.setText(new Double(AutoFare).toString());
+        fromText.setText(FromStop);
+        toText.setText(ToStop);
+        distText.setText(TotalDistance.toString() + " KM");
+        autoFare.setText("Rs " + AutoFare.toString());
 
         for (int i = 0; i < BusNumbers.size(); i++) {
             AddBusDetails(BusNumbers.get(i), Distance.get(i), JourneyTime.get(i),
@@ -69,41 +81,47 @@ public class DetailsActivity extends Activity {
     {
         LinearLayout.LayoutParams linLayoutParam = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        LinearLayout ll = (LinearLayout) (findViewById(R.id.bmtc_details));
+        LinearLayout parent = (LinearLayout) (findViewById(R.id.bmtc_details));
+
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        ll.setBackgroundResource(R.drawable.line_layout);
 
         TextView BusNumber = new TextView(this);
-        BusNumber.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+        BusNumber.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         BusNumber.setPadding(10, 0, 0, 0);
         BusNumber.setText("Bus # : " + busnum);
 
         TextView Fare = new TextView(this);
-        Fare.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+        Fare.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         Fare.setPadding(10, 0, 0, 0);
-        Fare.setText("Fare : " + fare);
+        Fare.setText("Fare : " + "Rs " + fare);
 
         TextView JourneyTime = new TextView(this);
-        JourneyTime.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+        JourneyTime.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         JourneyTime.setPadding(10, 0, 0, 0);
         JourneyTime.setText("Journey Time : " + journeyTime);
 
         TextView Distance = new TextView(this);
-        Distance.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+        Distance.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         Distance.setPadding(10, 0, 0, 0);
-        Distance.setText("Distance : " + distance);
+        Distance.setText("Distance : " + distance + " KM");
 
-        TextView ServiceType = new TextView(this);
-        ServiceType.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
+        View line = new View(this);
+        line.setBackgroundResource(R.drawable.line_layout);
+
+        /*TextView ServiceType = new TextView(this);
+        ServiceType.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         ServiceType.setPadding(10, 0, 0, 0);
-        ServiceType.setText("Service : " + ServiceType);
+        ServiceType.setText("Service : " + ServiceType);*/
 
         ll.addView(BusNumber, 0);
         ll.addView(Fare, 1);
         ll.addView(JourneyTime, 2);
         ll.addView(Distance, 3);
-        ll.addView(ServiceType, 4);
+        // ll.addView(ServiceType, 4);
 
-        //LinearLayout parent = (LinearLayout) (findViewById(R.layout.activity_details));
-        //parent.addView(ll, linLayoutParam);
+        parent.addView(ll, linLayoutParam);
     }
 
     @Override
@@ -124,22 +142,6 @@ public class DetailsActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_details, container, false);
-            return rootView;
-        }
     }
 
 }
