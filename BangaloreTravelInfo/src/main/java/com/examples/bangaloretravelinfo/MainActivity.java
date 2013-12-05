@@ -2,6 +2,8 @@ package com.examples.bangaloretravelinfo;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -65,6 +67,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //getActionBar().setBackgroundDrawable(new ColorDrawable(0xff247aff));
 
         detailsActivity = new DetailsActivity();
 

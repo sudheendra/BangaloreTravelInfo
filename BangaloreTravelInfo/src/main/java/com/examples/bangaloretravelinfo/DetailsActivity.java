@@ -43,6 +43,8 @@ public class DetailsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getActionBar().setTitle("Bangalore Travel Guide");
+
         Intent intent = getIntent();
 
         ToStop = intent.getStringExtra("ToStop");
