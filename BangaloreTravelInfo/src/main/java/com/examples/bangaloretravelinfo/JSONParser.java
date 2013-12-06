@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by sudheendra.sn on 11/18/13.
@@ -74,7 +75,7 @@ public class JSONParser {
         try {
             jObj = new JSONObject(json);
         } catch (JSONException e) {
-            Log.e("JSON Parser", "Error parsing data " + e.toString());
+            // Log.e("JSON Parser", "Error parsing data " + e.toString());
         }
 
         // return JSON String
@@ -97,7 +98,8 @@ public class JSONParser {
             HttpEntity httpEntity = httpResponse.getEntity();
             is = httpEntity.getContent();
 
-        } catch (UnsupportedEncodingException e) {
+        }
+        catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ClientProtocolException e) {
             e.printStackTrace();
@@ -126,7 +128,7 @@ public class JSONParser {
     {
         if (s.matches(".*?['\\-—¿].*"))
         {
-            Log.i("Bang Travel", "Has Special Characters");
+            //Log.i("Bang Travel", "Has Special Characters");
             return true;
         }
         return  false;

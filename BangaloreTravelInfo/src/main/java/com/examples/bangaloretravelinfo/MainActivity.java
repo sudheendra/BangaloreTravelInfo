@@ -34,6 +34,7 @@ import java.lang.Integer;
 import java.lang.String;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends Activity {
 
@@ -158,8 +159,8 @@ public class MainActivity extends Activity {
         Float[] to_lat_long = GetLatLong(toaddress).clone();
         Float[] from_lat_long = GetLatLong(fromaddress).clone();
 
-        Log.i("Bang Travel", "Length of TO: " + to_lat_long.length);
-        Log.i("Bang Travel", "Length of FROM: " + from_lat_long.length);
+        //Log.i("Bang Travel", "Length of TO: " + to_lat_long.length);
+        //Log.i("Bang Travel", "Length of FROM: " + from_lat_long.length);
 
         float[] distanceResults = new float[5];
 
@@ -221,9 +222,8 @@ public class MainActivity extends Activity {
 
         } catch (JSONException ex) {
             ex.printStackTrace();
-            Log.i("Bang Travel", ex.getMessage());
+            //Log.i("Bang Travel", ex.getMessage());
         }
-
         return lat_long;
     }
 
@@ -235,6 +235,7 @@ public class MainActivity extends Activity {
     private class JsoupParseHtml extends AsyncTask<String, Integer, Integer> {
 
         Document doc;
+        int NumberOfRoutesInt;
         protected Integer doInBackground(String... urls)
         {
             BusNumbers.clear();
@@ -258,7 +259,7 @@ public class MainActivity extends Activity {
 
                 Elements routeDetails = doc.select("td");
                 String NumberOfRoutesStr = routeDetails.get(0).text();
-                Integer NumberOfRoutesInt = Integer.parseInt(NumberOfRoutesStr.split(" ")[0]);
+                NumberOfRoutesInt = Integer.parseInt(NumberOfRoutesStr.split(" ")[0]);
                 Log.i("Bang Travel", "No of routes: " + NumberOfRoutesInt);
 
                 for (int i = 2; i < routeDetails.size() - 2; i = i + 4) {
@@ -298,6 +299,7 @@ public class MainActivity extends Activity {
 
                 Log.i("Bang Travel", "Vector Size: " + BusNumbers.size() + " " + Distance.size() + " " + JourneyTime.size() + " " + Fare.size() + " " + ServiceType.size());
             }
+
             catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -312,6 +314,10 @@ public class MainActivity extends Activity {
         protected void onPostExecute(Integer result) {
             Log.i("Bang Travel", "Post Execute");
             LoadDetailsActivity();
+            if (NumberOfRoutesInt == 0)
+            {
+                Toast.makeText(getApplicationContext(), "0 Direct routes found", Toast.LENGTH_LONG);
+            }
         }
     }
 
