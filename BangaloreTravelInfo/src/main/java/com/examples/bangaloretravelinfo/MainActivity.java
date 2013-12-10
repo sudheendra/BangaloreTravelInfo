@@ -1,11 +1,11 @@
 package com.examples.bangaloretravelinfo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
-import android.os.AsyncTask;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -24,17 +24,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.Integer;
 import java.lang.String;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends Activity {
 
@@ -54,11 +44,6 @@ public class MainActivity extends Activity {
 
     private double AutoFare;
     private Float TotalDistance;
-    private ArrayList<String> BusNumbers;
-    private ArrayList<String> Distance;
-    private ArrayList<String> JourneyTime;
-    private ArrayList<String> Fare;
-    private ArrayList<String> ServiceType;
     private String ToStop;
     private String FromStop;
 
@@ -72,12 +57,6 @@ public class MainActivity extends Activity {
         //getActionBar().setBackgroundDrawable(new ColorDrawable(0xff247aff));
 
         detailsActivity = new DetailsActivity();
-
-        BusNumbers = new ArrayList<String>();
-        Distance = new ArrayList<String>();
-        JourneyTime = new ArrayList<String>();
-        Fare = new ArrayList<String>();
-        ServiceType = new ArrayList<String>();
 
         toText = (AutoCompleteTextView) findViewById(R.id.to_text);
         fromText = (AutoCompleteTextView) findViewById(R.id.from_text);
@@ -110,12 +89,17 @@ public class MainActivity extends Activity {
                 String toaddress = ToStop + ", Bangalore";
                 String fromaddress = FromStop + ", Bangalore";
 
-                String url = "http://mybmtc.com/trip-planner/" + EncodeUrl(FromStop.trim()) + "%280%29/" + EncodeUrl(ToStop.trim()) + "%280%29/0/0/0/0/D/0/0";
-                new JsoupParseHtml().execute(url);
-
-                TotalDistance =  truncate(GetDistanceFromUrl(toaddress, fromaddress), 2);
-                Math.round(TotalDistance);
-                Log.i("Bang Travel", "Total distance: " + TotalDistance);
+                if (GetNetworkStatus())
+                {
+                    TotalDistance =  truncate(GetDistanceFromUrl(toaddress, fromaddress), 2);
+                    Math.round(TotalDistance);
+                    // Log.i("Bang Travel", "Total distance: " + TotalDistance);
+                    LoadDetailsActivity();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Please check/enable your network connecttion", Toast.LENGTH_LONG).show();
+                }
 
             }
             catch (Exception ex)
@@ -124,6 +108,14 @@ public class MainActivity extends Activity {
             }
         }
     };
+
+    private boolean GetNetworkStatus()
+    {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return isConnected;
+    }
 
     private AdapterView.OnItemSelectedListener OnToItemSelected = new AdapterView.OnItemSelectedListener() {
         @Override
@@ -170,6 +162,11 @@ public class MainActivity extends Activity {
             try {
             Location.distanceBetween(from_lat_long[0], from_lat_long[1], to_lat_long[0], to_lat_long[1], distanceResults);
             if (distanceResults.length > 0)
+
+                for (int i = 0; i < distanceResults.length; i++) {
+                    Log.i("Bang Travel", "Distance Res: " + distanceResults[i]);
+                }
+
                 return (distanceResults[0]/1000);
             }
             catch (NullPointerException ex) {
@@ -194,9 +191,10 @@ public class MainActivity extends Activity {
 
         JSONParser jParser = new JSONParser();
         // getting JSON string from URL
-        JSONObject json = jParser.getJSONFromUrl(googleMapURI);
+        JSONObject json;
 
         try {
+            json = jParser.getJSONFromUrl(googleMapURI);
             // Getting Array of results
             results = json.getJSONArray(TAG_RESULTS);
 
@@ -221,8 +219,7 @@ public class MainActivity extends Activity {
             }
 
         } catch (JSONException ex) {
-            ex.printStackTrace();
-            //Log.i("Bang Travel", ex.getMessage());
+            Toast.makeText(getApplicationContext(), "Connection TimeOut\n" + ex.getMessage(), Toast.LENGTH_LONG).show();
         }
         return lat_long;
     }
@@ -231,96 +228,6 @@ public class MainActivity extends Activity {
     {
         return 20 * distance;
     }
-
-    private class JsoupParseHtml extends AsyncTask<String, Integer, Integer> {
-
-        Document doc;
-        int NumberOfRoutesInt;
-        protected Integer doInBackground(String... urls)
-        {
-            BusNumbers.clear();
-            Distance.clear();
-            JourneyTime.clear();
-            Fare.clear();
-            ServiceType.clear();
-            try {
-                doc = Jsoup.connect(urls[0]).get();
-                String title = doc.title();
-                System.out.println("title : " + title);
-
-                // get all links
-                /*Elements links = doc.select("a[href]");
-                for (Element link : links) {
-
-                    // get the value from href attribute
-                    System.out.println("\nlink : " + link.attr("href"));
-                    System.out.println("text : " + link.text());
-                }*/
-
-                Elements routeDetails = doc.select("td");
-                String NumberOfRoutesStr = routeDetails.get(0).text();
-                NumberOfRoutesInt = Integer.parseInt(NumberOfRoutesStr.split(" ")[0]);
-                Log.i("Bang Travel", "No of routes: " + NumberOfRoutesInt);
-
-                for (int i = 2; i < routeDetails.size() - 2; i = i + 4) {
-                    String totalDetails = routeDetails.get(i).text();
-                    if (totalDetails.startsWith("Route"))
-                    {
-                        String routeNum = routeDetails.get(i).text();
-                        String[] busdetails = routeNum.split(":");
-                        if (busdetails.length > 1)
-                        {
-                            /*for (int k = 0; k < busdetails.length; k++) {
-                                Log.i("Bang Travel", "Bus Details: " + k + ": " + busdetails[k]);
-                            }*/
-
-                            if (busdetails.length >= 6)
-                            {
-                                BusNumbers.add(busdetails[1].split(" ")[1]);
-                                Distance.add(busdetails[2].split(" ")[1]);
-                                JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
-                                String fare = busdetails[4].split(" ")[1].split("[^0-9]")[0];
-                                Fare.add(fare);
-                                ServiceType.add(busdetails[5].split(" ")[1] + " " + busdetails[5].split(" ")[2]);
-                                Log.i("Bang Travel", "Service Type: " + ServiceType);
-                            }
-                            else if (busdetails.length == 5)
-                            {
-                                BusNumbers.add(busdetails[1].split(" ")[1]);
-                                Distance.add(busdetails[2].split(" ")[1]);
-                                JourneyTime.add(busdetails[3].split(" ")[1] + " " + busdetails[3].split(" ")[2]);
-                                Fare.add("100");
-                                ServiceType.add(busdetails[4].split(" ")[0] + " " + busdetails[4].split(" ")[1]);
-                                Log.i("Bang Travel", "Service Type: " + ServiceType);
-                            }
-                        }
-                    }
-                }
-
-                Log.i("Bang Travel", "Vector Size: " + BusNumbers.size() + " " + Distance.size() + " " + JourneyTime.size() + " " + Fare.size() + " " + ServiceType.size());
-            }
-
-            catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            return new Integer(1);
-        }
-
-        protected void onProgressUpdate(Integer... progress)
-        {
-
-        }
-
-        protected void onPostExecute(Integer result) {
-            Log.i("Bang Travel", "Post Execute");
-            LoadDetailsActivity();
-            if (NumberOfRoutesInt == 0)
-            {
-                Toast.makeText(getApplicationContext(), "0 Direct routes found", Toast.LENGTH_LONG);
-            }
-        }
-    }
-
 
     private void LoadDetailsActivity()
     {
@@ -332,11 +239,6 @@ public class MainActivity extends Activity {
             intent.putExtra("FromStop", FromStop);
             intent.putExtra("TotalDistance", TotalDistance);
             intent.putExtra("AutoFare", AutoFare);
-            intent.putStringArrayListExtra("BusNumbers", BusNumbers);
-            intent.putStringArrayListExtra("Distance", Distance);
-            intent.putStringArrayListExtra("JourneyTime", JourneyTime);
-            intent.putStringArrayListExtra("Fare", Fare);
-            intent.putStringArrayListExtra("ServiceType", ServiceType);
 
             startActivity(intent);
         }
@@ -345,17 +247,6 @@ public class MainActivity extends Activity {
             Toast.makeText(getApplicationContext(), "Unable to calculate distance", Toast.LENGTH_LONG).show();
             return;
         }
-    }
-
-    private String EncodeUrl(String s) {
-        String url = "";
-        try {
-            url = URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
-        }
-        catch (UnsupportedEncodingException ex) {
-
-        }
-        return url;
     }
 
     @Override

@@ -2,9 +2,6 @@ package com.examples.bangaloretravelinfo;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,22 +11,46 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+import com.examples.bangaloretravelguide.R;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by sudheendra.sn on 11/25/13.
  */
 public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filterable{
     private LayoutInflater mInflater;
-    private StringBuilder mSb = new StringBuilder();
     ArrayList<String> Stops;
+    ArrayList<String> StopList;
 
     public AutoCompleteAdapter(final Context context, int TextViewResourceId) {
         super(context, TextViewResourceId);
         mInflater = LayoutInflater.from(context);
+        StopList = new ArrayList<String>();
+        LoadStopsFromRawFile(context);
     }
+
+    private void LoadStopsFromRawFile(Context ctx)
+    {
+        InputStream is = ctx.getResources().openRawResource(R.raw.bus_stops);
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
+
+        try {
+            while ((line = br.readLine()) != null) {
+                StopList.add(line);
+            }
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
@@ -39,7 +60,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
             tv.setBackgroundColor(Color.BLACK);
             tv.setTextColor(Color.WHITE);
         } else {
-            Log.i("BangTravel", "Else Block");
+            // Log.i("BangTravel", "Else Block");
             tv = (TextView) mInflater.inflate(android.R.layout.simple_dropdown_item_1line, parent, false);
             tv.setBackgroundColor(Color.BLACK);
             tv.setTextColor(Color.WHITE);
@@ -63,14 +84,13 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
         Filter myFilter = new Filter() {
             @Override
             protected FilterResults performFiltering(final CharSequence constraint) {
-                List<String> StopList = null;
                 if (constraint != null) {
                     try {
                         Stops = GetStopNames(constraint.toString());
-                        Log.i("Bang Travel", "Stops Size: " + Stops.size());
+                        /*Log.i("Bang Travel", "Stops Size: " + Stops.size());
                         for (int i = 0; i < Stops.size(); i++) {
                             Log.i("Bang Travel", "Stop is: " + Stops.get(i));
-                        }
+                        }*/
                     } catch (Exception e) {
                     }
                 }
@@ -109,7 +129,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
 
     private ArrayList<String> GetStopNames(String s)
     {
-        ArrayList<String> stoplist = new ArrayList<String>();
+        /*ArrayList<String> stoplist = new ArrayList<String>();
         JSONParser jParser = new JSONParser();
         // getting JSON string from URL
         String url = "http://mybmtc.com" + "/busstopname/autocomplete/" + s;
@@ -128,6 +148,17 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
         } catch (Exception ex) {
             ex.printStackTrace();
             Log.i("Bang Travel", ex.getMessage());
+        }*/
+
+        ArrayList<String> stoplist = new ArrayList<String>();
+        String stopNameLower = s.toLowerCase();
+        String firstChar = s.substring(0,1);
+        String stopName = firstChar.toUpperCase() + stopNameLower.substring(1);
+
+        for (int i = 0; i < StopList.size(); i++) {
+            String stop = StopList.get(i);
+            if (stop.contains(stopName))
+                stoplist.add(stop);
         }
 
         return stoplist;
