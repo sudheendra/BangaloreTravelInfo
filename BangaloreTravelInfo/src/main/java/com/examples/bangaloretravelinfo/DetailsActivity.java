@@ -3,6 +3,8 @@ package com.examples.bangaloretravelinfo;
 import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -171,7 +173,7 @@ public class DetailsActivity extends Activity {
                 Log.i("Bang Travel", "Vector Size: " + BusNumbers.size() + " " + Distance.size() + " " + JourneyTime.size() + " " + Fare.size() + " " + ServiceType.size());
             }
             catch (SocketTimeoutException ex) {
-                Toast.makeText(getApplicationContext(), "Connection Timed Out", Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), "Connection Timed Out", Toast.LENGTH_LONG).show();
             }
             catch (IOException ex) {
                 ex.printStackTrace();
@@ -202,7 +204,7 @@ public class DetailsActivity extends Activity {
 
         LinearLayout ll = new LinearLayout(this);
         ll.setOrientation(LinearLayout.VERTICAL);
-        ll.setBackgroundResource(R.drawable.line_layout);
+        ll.setBackgroundResource(R.drawable.linear_lyt_background_1);
 
         TextView BusNumber = new TextView(this);
         BusNumber.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
@@ -225,7 +227,16 @@ public class DetailsActivity extends Activity {
         Distance.setText("Distance : " + distance + " KM");
 
         View line = new View(this);
-        line.setBackgroundResource(R.drawable.line_layout);
+        line.setBackgroundColor(Color.BLACK);
+
+        Paint linePaint = new Paint();
+        linePaint.setAntiAlias(true);
+        linePaint.setDither(true);
+        linePaint.setColor(Color.BLUE);
+        linePaint.setStyle(Paint.Style.STROKE);
+        linePaint.setStrokeJoin(Paint.Join.ROUND);
+        linePaint.setStrokeCap(Paint.Cap.ROUND);
+        linePaint.setStrokeWidth(5);
 
         /*TextView ServiceType = new TextView(this);
         ServiceType.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);

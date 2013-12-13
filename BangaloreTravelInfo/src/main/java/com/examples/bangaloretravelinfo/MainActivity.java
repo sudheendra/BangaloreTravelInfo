@@ -148,11 +148,12 @@ public class MainActivity extends Activity {
 
     private Float GetDistanceFromUrl(String toaddress, String fromaddress)
     {
+        Log.i("Bang Travel", "To: " + toaddress + " From: " + fromaddress);
         Float[] to_lat_long = GetLatLong(toaddress).clone();
         Float[] from_lat_long = GetLatLong(fromaddress).clone();
 
-        //Log.i("Bang Travel", "Length of TO: " + to_lat_long.length);
-        //Log.i("Bang Travel", "Length of FROM: " + from_lat_long.length);
+        Log.i("Bang Travel", "Lat TO: " + to_lat_long[0] + "Long TO: " + to_lat_long[1]);
+        Log.i("Bang Travel", "Lat FROM: " + from_lat_long[0] + "Long FROM: " + from_lat_long[1]);
 
         float[] distanceResults = new float[5];
 
